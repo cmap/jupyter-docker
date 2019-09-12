@@ -3,7 +3,10 @@ FROM jupyter/scipy-notebook:latest
 
 USER root
 
-RUN apt-get update && apt-get -y install libc-dev && apt-get -y install build-essential && apt-get -y install git
+RUN apt-get update && apt -y install libc-dev build-essential git docker.io
+
+RUN usermod -aG docker $NB_USER
+#RUN systemctl start docker && systemctl enable docker
 
 # Create a Python 2.x environment using conda including at least the ipython kernel
 # and the kernda utility. Add any additional packages you want available for use
@@ -28,7 +31,6 @@ RUN /bin/bash -c "source activate merino"
 
 # install merino into the environment here
 RUN git clone https://github.com/cmap/merino.git && cd merino && python setup.py develop
-#RUN source activate merino
 
 RUN python -m ipykernel install && \
 kernda -o -y /usr/local/share/jupyter/kernels/python2/kernel.json
@@ -37,6 +39,8 @@ kernda -o -y /usr/local/share/jupyter/kernels/python2/kernel.json
 #deactivate merino
 RUN /bin/bash -c "source deactivate merino"
 
+RUN gpasswd -a $NB_USER docker
+RUN service docker start
 
 USER $NB_USER
 
